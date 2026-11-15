@@ -7,34 +7,46 @@ export function LoginPage() {
   const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   if (isAuthenticated) {
     return <Navigate to="/vender" replace />
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault()
+  async function handleSubmit(e) {
+    e.preventDefault()
     setError('')
-    setSubmitting(true)
+
+    const formData = new FormData(e.currentTarget)
+    const email = String(formData.get('email') ?? '').trim()
+    const password = String(formData.get('password') ?? '')
+
+    if (!email || !password.trim()) {
+      setError('Preencha e-mail e senha.')
+      return
+    }
+
+    setLoading(true)
 
     try {
-      await login(email.trim(), password)
+      await login(email, password)
       navigate('/vender', { replace: true })
-    } catch {
-      setError('E-mail ou senha incorretos.')
+    } catch (err) {
+      if (err instanceof TypeError) {
+        setError('Não foi possível conectar ao servidor. Tente de novo.')
+      } else {
+        setError('E-mail ou senha incorretos.')
+      }
     } finally {
-      setSubmitting(false)
+      setLoading(false)
     }
   }
 
   return (
     <main className="login-page">
       <div className="login-logo-wrap">
-        <img src={logo} alt="Salgados Ulerich" className="login-logo" width="210" />
+        <img src={logo} alt="Salgados Ulerich" className="login-logo" />
       </div>
 
       <header className="login-header">
@@ -42,19 +54,17 @@ export function LoginPage() {
         <p className="login-subtitle">Entre para registrar suas vendas de hoje.</p>
       </header>
 
-      <form className="login-form" onSubmit={handleSubmit}>
+      <form className="login-form" onSubmit={handleSubmit} noValidate>
         <div className="form-group">
           <label htmlFor="email" className="form-label">
             E-mail
           </label>
           <input
             id="email"
+            name="email"
             type="email"
             className="input-field"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
             autoComplete="email"
-            required
           />
         </div>
 
@@ -64,12 +74,10 @@ export function LoginPage() {
           </label>
           <input
             id="password"
+            name="password"
             type="password"
             className="input-field"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
             autoComplete="current-password"
-            required
           />
         </div>
 
@@ -82,7 +90,7 @@ export function LoginPage() {
         <button
           type="submit"
           className="btn-primary login-submit"
-          disabled={submitting}
+          disabled={loading}
         >
           Entrar
         </button>
