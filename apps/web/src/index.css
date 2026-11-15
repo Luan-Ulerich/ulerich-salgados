@@ -273,3 +273,256 @@ textarea {
 .nav-item.active .nav-icon-pill {
   background-color: var(--gold-soft);
 }
+
+.btn-full {
+  width: 100%;
+}
+
+.btn-link {
+  text-decoration: none;
+}
+
+/* Mais & Options */
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.option-item {
+  min-height: 56px;
+  padding: 0 18px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  color: var(--ink);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.option-item-chevron {
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.mais-logout-wrap {
+  margin-top: 12px;
+}
+
+/* Products Header & Page */
+.products-page {
+  padding-bottom: 104px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.back-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.products-state {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.products-state-card {
+  padding: 20px 16px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.products-error-text {
+  color: var(--ink);
+  font-weight: 600;
+  text-align: center;
+}
+
+.products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.product-card {
+  min-height: 64px;
+  padding: 12px 16px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  color: var(--ink);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.product-card-inactive {
+  opacity: 0.6;
+}
+
+.product-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.product-card-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.product-card-price {
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.product-badge-inactive {
+  padding: 4px 10px;
+  border-radius: 14px;
+  background-color: var(--gold-soft);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.products-bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  padding: 12px 20px;
+  background-color: var(--cream);
+  border-top: 1px solid var(--border);
+  z-index: 15;
+}
+
+.products-bottom-bar-inner {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Product Form */
+.product-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.switch-row {
+  min-height: 56px;
+  padding: 8px 16px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.switch-control {
+  position: relative;
+  min-width: 52px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.switch-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.switch-track {
+  width: 50px;
+  height: 28px;
+  background-color: var(--border);
+  border-radius: 14px;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.15s ease;
+}
+
+.switch-thumb {
+  width: 22px;
+  height: 22px;
+  background-color: var(--surface);
+  border-radius: 14px;
+  transition: transform 0.15s ease;
+}
+
+.switch-input:checked + .switch-track {
+  background-color: var(--primary);
+}
+
+.switch-input:checked + .switch-track .switch-thumb {
+  transform: translateX(22px);
+}
+
+.switch-input:focus-visible + .switch-track {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.form-alert {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background-color: var(--gold-soft);
+  border: 1.5px solid var(--border);
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.product-form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}

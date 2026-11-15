@@ -1,4 +1,4 @@
-import { Navigate, NavLink, Outlet } from 'react-router-dom'
+import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth.js'
 
 const NAV_ITEMS = [
@@ -51,10 +51,13 @@ const NAV_ITEMS = [
 
 export function AppLayout() {
   const { isAuthenticated } = useAuth()
+  const location = useLocation()
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
+
+  const isProductsRoute = location.pathname.startsWith('/produtos')
 
   return (
     <div className="app-shell">
@@ -66,7 +69,10 @@ export function AppLayout() {
             <NavLink
               key={item.to}
               to={item.to}
-              className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+              className={({ isActive }) => {
+                const active = isActive || (item.to === '/mais' && isProductsRoute)
+                return `nav-item${active ? ' active' : ''}`
+              }}
             >
               <span className="nav-icon-pill">{item.icon}</span>
               <span>{item.label}</span>
