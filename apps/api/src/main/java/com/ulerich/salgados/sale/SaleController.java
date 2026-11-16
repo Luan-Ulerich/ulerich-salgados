@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -180,5 +181,25 @@ public class SaleController {
         sale.setDeletedAt(Instant.now());
         saleRepository.save(sale);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/pay")
+    @Transactional
+    public SaleResponse pay(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long id,
+            @Valid @RequestBody SalePayRequest request
+    ) {
+        Long userId = Long.valueOf(jwt.getSubject());
+        Sale sale = saleRepository.findByIdAndUserIdAndDeletedAtIsNull(id, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Venda não encontrada"));
+
+        if (sale.getPaymentStatus() == PaymentStatus.PAGO) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Esta venda já foi recebida.");
+        }
+
+        sale.markAsPaid(request.paymentMethod(), Instant.now());
+        Sale saved = saleRepository.save(sale);
+        return SaleResponse.from(saved);
     }
 }

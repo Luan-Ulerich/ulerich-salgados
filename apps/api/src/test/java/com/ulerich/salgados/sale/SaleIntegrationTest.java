@@ -20,9 +20,11 @@ import org.springframework.web.context.WebApplicationContext;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -316,6 +318,7 @@ class SaleIntegrationTest {
         saleRepository.save(new Sale(
                 otherUser.getId(),
                 java.time.Instant.parse("2026-11-10T15:00:00Z"),
+                java.time.Instant.parse("2026-11-10T15:00:00Z"),
                 1000,
                 PaymentMethod.PIX,
                 PaymentStatus.PAGO,
@@ -432,5 +435,194 @@ class SaleIntegrationTest {
 
         mockMvc.perform(delete("/sales/1"))
                 .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(patch("/sales/1/pay")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"paymentMethod\":\"PIX\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void vendaCriadaComoPagoTemPaidAtIgualASoldAtEPendenteTemPaidAtNulo() throws Exception {
+        String paidPayload = """
+                {
+                  "totalCents": 1300,
+                  "paymentMethod": "PIX",
+                  "paymentStatus": "PAGO",
+                  "soldAt": "2026-11-12T15:00:00Z"
+                }
+                """;
+
+        mockMvc.perform(post("/sales")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(paidPayload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.soldAt").value("2026-11-12T15:00:00Z"))
+                .andExpect(jsonPath("$.paidAt").value("2026-11-12T15:00:00Z"))
+                .andExpect(jsonPath("$.paymentStatus").value("PAGO"));
+
+        String pendingPayload = """
+                {
+                  "totalCents": 1300,
+                  "paymentMethod": "DINHEIRO",
+                  "paymentStatus": "PENDENTE",
+                  "soldAt": "2026-11-12T16:00:00Z"
+                }
+                """;
+
+        mockMvc.perform(post("/sales")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(pendingPayload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.soldAt").value("2026-11-12T16:00:00Z"))
+                .andExpect(jsonPath("$.paidAt").value(nullValue()))
+                .andExpect(jsonPath("$.paymentStatus").value("PENDENTE"));
+    }
+
+    @Test
+    void pagarFiadoRetorna200StatusPagoPaidAtPreenchidoETrocaPaymentMethod() throws Exception {
+        String createPendingPayload = """
+                {
+                  "items": [
+                    { "productId": %d, "quantity": 2 }
+                  ],
+                  "paymentMethod": "DINHEIRO",
+                  "paymentStatus": "PENDENTE",
+                  "customerName": "Ana"
+                }
+                """.formatted(coxinha.getId());
+
+        MvcResult createResult = mockMvc.perform(post("/sales")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createPendingPayload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.paymentStatus").value("PENDENTE"))
+                .andExpect(jsonPath("$.paymentMethod").value("DINHEIRO"))
+                .andExpect(jsonPath("$.paidAt").value(nullValue()))
+                .andReturn();
+
+        Long saleId = objectMapper.readTree(createResult.getResponse().getContentAsString())
+                .get("id")
+                .asLong();
+
+        mockMvc.perform(patch("/sales/" + saleId + "/pay")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"paymentMethod\":\"PIX\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(saleId))
+                .andExpect(jsonPath("$.paymentStatus").value("PAGO"))
+                .andExpect(jsonPath("$.paymentMethod").value("PIX"))
+                .andExpect(jsonPath("$.paidAt").isNotEmpty())
+                .andExpect(jsonPath("$.totalCents").value(1300))
+                .andExpect(jsonPath("$.items", hasSize(1)))
+                .andExpect(jsonPath("$.items[0].name").value("Coxinha"));
+    }
+
+    @Test
+    void pagarFiadoDeNovoRetorna409ComMensagemClara() throws Exception {
+        Sale pendingSale = saleRepository.save(new Sale(
+                loggedUser.getId(),
+                java.time.Instant.parse("2026-11-10T14:00:00Z"),
+                null,
+                1500L,
+                PaymentMethod.DINHEIRO,
+                PaymentStatus.PENDENTE,
+                "Cliente Fiado",
+                null
+        ));
+
+        mockMvc.perform(patch("/sales/" + pendingSale.getId() + "/pay")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"paymentMethod\":\"CARTAO\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paymentStatus").value("PAGO"));
+
+        mockMvc.perform(patch("/sales/" + pendingSale.getId() + "/pay")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"paymentMethod\":\"PIX\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Esta venda já foi recebida."));
+    }
+
+    @Test
+    void pagarVendaInexistenteDeOutroUsuarioOuApagadaRetorna404() throws Exception {
+        Sale otherUserSale = saleRepository.save(new Sale(
+                otherUser.getId(),
+                java.time.Instant.parse("2026-11-10T14:00:00Z"),
+                null,
+                1000L,
+                PaymentMethod.DINHEIRO,
+                PaymentStatus.PENDENTE,
+                "Outro",
+                null
+        ));
+
+        Sale deletedSale = new Sale(
+                loggedUser.getId(),
+                java.time.Instant.parse("2026-11-10T14:00:00Z"),
+                null,
+                1000L,
+                PaymentMethod.DINHEIRO,
+                PaymentStatus.PENDENTE,
+                "Apagada",
+                null
+        );
+        deletedSale.setDeletedAt(java.time.Instant.now());
+        deletedSale = saleRepository.save(deletedSale);
+
+        mockMvc.perform(patch("/sales/999999/pay")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"paymentMethod\":\"PIX\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").isNotEmpty());
+
+        mockMvc.perform(patch("/sales/" + otherUserSale.getId() + "/pay")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"paymentMethod\":\"PIX\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").isNotEmpty());
+
+        mockMvc.perform(patch("/sales/" + deletedSale.getId() + "/pay")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"paymentMethod\":\"PIX\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+
+    @Test
+    void pagarComPaymentMethodAusenteOuInvalidoRetorna400() throws Exception {
+        Sale pendingSale = saleRepository.save(new Sale(
+                loggedUser.getId(),
+                java.time.Instant.parse("2026-11-10T14:00:00Z"),
+                null,
+                1200L,
+                PaymentMethod.DINHEIRO,
+                PaymentStatus.PENDENTE,
+                "Cliente",
+                null
+        ));
+
+        mockMvc.perform(patch("/sales/" + pendingSale.getId() + "/pay")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").isNotEmpty());
+
+        mockMvc.perform(patch("/sales/" + pendingSale.getId() + "/pay")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"paymentMethod\":\"CHEQUE\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").isNotEmpty());
     }
 }

@@ -28,8 +28,11 @@ public interface SummaryRepository extends Repository<Sale, Long> {
             FROM Sale s
             WHERE s.userId = :userId
               AND s.deletedAt IS NULL
-              AND s.soldAt >= :start
-              AND s.soldAt < :end
+              AND (
+                  (s.paymentStatus = com.ulerich.salgados.sale.PaymentStatus.PAGO AND s.paidAt >= :start AND s.paidAt < :end)
+                  OR
+                  (s.paymentStatus = com.ulerich.salgados.sale.PaymentStatus.PENDENTE AND s.soldAt >= :start AND s.soldAt < :end)
+              )
             GROUP BY s.paymentStatus, s.paymentMethod
             """)
     List<StatusMethodAggregate> aggregateByStatusAndMethod(
@@ -39,16 +42,16 @@ public interface SummaryRepository extends Repository<Sale, Long> {
     );
 
     @Query(value = """
-            SELECT (s.sold_at AT TIME ZONE 'America/Sao_Paulo')::date AS saleDate,
+            SELECT (s.paid_at AT TIME ZONE 'America/Sao_Paulo')::date AS saleDate,
                    COALESCE(SUM(s.total_cents), 0)::bigint AS totalCents,
                    COUNT(s.id)::bigint AS salesCount
             FROM sales s
             WHERE s.user_id = :userId
               AND s.deleted_at IS NULL
               AND s.payment_status = 'PAGO'
-              AND s.sold_at >= :start
-              AND s.sold_at < :end
-            GROUP BY (s.sold_at AT TIME ZONE 'America/Sao_Paulo')::date
+              AND s.paid_at >= :start
+              AND s.paid_at < :end
+            GROUP BY (s.paid_at AT TIME ZONE 'America/Sao_Paulo')::date
             ORDER BY saleDate ASC
             """, nativeQuery = true)
     List<DailyAggregateProjection> aggregatePaidByDayInSaoPaulo(
@@ -69,8 +72,8 @@ public interface SummaryRepository extends Repository<Sale, Long> {
             WHERE s.userId = :userId
               AND s.deletedAt IS NULL
               AND s.paymentStatus = com.ulerich.salgados.sale.PaymentStatus.PAGO
-              AND s.soldAt >= :start
-              AND s.soldAt < :end
+              AND s.paidAt >= :start
+              AND s.paidAt < :end
             GROUP BY si.productId, si.productNameSnapshot
             ORDER BY SUM(si.quantity) DESC, SUM(si.unitPriceCents * si.quantity) DESC, si.productNameSnapshot ASC
             """)

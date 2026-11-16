@@ -26,11 +26,16 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -117,6 +122,7 @@ class SummaryIntegrationTest {
         saleRepository.save(new Sale(
                 loggedUser.getId(),
                 soldAtDay,
+                soldAtDay,
                 1500L,
                 PaymentMethod.PIX,
                 PaymentStatus.PAGO,
@@ -128,6 +134,7 @@ class SummaryIntegrationTest {
         saleRepository.save(new Sale(
                 loggedUser.getId(),
                 soldAtDay,
+                soldAtDay,
                 800L,
                 PaymentMethod.DINHEIRO,
                 PaymentStatus.PAGO,
@@ -136,6 +143,7 @@ class SummaryIntegrationTest {
         ));
         saleRepository.save(new Sale(
                 loggedUser.getId(),
+                soldAtDay,
                 soldAtDay,
                 700L,
                 PaymentMethod.DINHEIRO,
@@ -148,6 +156,7 @@ class SummaryIntegrationTest {
         saleRepository.save(new Sale(
                 loggedUser.getId(),
                 soldAtDay,
+                null,
                 2000L,
                 PaymentMethod.CARTAO,
                 PaymentStatus.PENDENTE,
@@ -158,6 +167,7 @@ class SummaryIntegrationTest {
         // 4) Venda deletada (deleted_at preenchido) -> não entra em nada
         Sale deletedSale = new Sale(
                 loggedUser.getId(),
+                soldAtDay,
                 soldAtDay,
                 5000L,
                 PaymentMethod.PIX,
@@ -171,6 +181,7 @@ class SummaryIntegrationTest {
         // 5) Venda de outro usuário -> não entra em nada
         saleRepository.save(new Sale(
                 otherUser.getId(),
+                soldAtDay,
                 soldAtDay,
                 9000L,
                 PaymentMethod.PIX,
@@ -210,6 +221,7 @@ class SummaryIntegrationTest {
         saleRepository.save(new Sale(
                 loggedUser.getId(),
                 sp2330,
+                sp2330,
                 1200L,
                 PaymentMethod.PIX,
                 PaymentStatus.PAGO,
@@ -219,6 +231,7 @@ class SummaryIntegrationTest {
 
         saleRepository.save(new Sale(
                 loggedUser.getId(),
+                spNextDay0030,
                 spNextDay0030,
                 3400L,
                 PaymentMethod.PIX,
@@ -246,6 +259,7 @@ class SummaryIntegrationTest {
         Sale sale1 = new Sale(
                 loggedUser.getId(),
                 Instant.parse("2026-11-05T13:00:00Z"),
+                Instant.parse("2026-11-05T13:00:00Z"),
                 3700L,
                 PaymentMethod.PIX,
                 PaymentStatus.PAGO,
@@ -260,6 +274,7 @@ class SummaryIntegrationTest {
         Sale sale2 = new Sale(
                 loggedUser.getId(),
                 Instant.parse("2026-11-21T02:30:00Z"),
+                Instant.parse("2026-11-21T02:30:00Z"),
                 2200L,
                 PaymentMethod.DINHEIRO,
                 PaymentStatus.PAGO,
@@ -273,6 +288,7 @@ class SummaryIntegrationTest {
         saleRepository.save(new Sale(
                 loggedUser.getId(),
                 Instant.parse("2026-11-20T15:00:00Z"),
+                Instant.parse("2026-11-20T15:00:00Z"),
                 1000L,
                 PaymentMethod.CARTAO,
                 PaymentStatus.PAGO,
@@ -284,6 +300,7 @@ class SummaryIntegrationTest {
         Sale pendingSale = new Sale(
                 loggedUser.getId(),
                 Instant.parse("2026-11-10T15:00:00Z"),
+                null,
                 6000L,
                 PaymentMethod.PIX,
                 PaymentStatus.PENDENTE,
@@ -364,5 +381,174 @@ class SummaryIntegrationTest {
 
         mockMvc.perform(get("/summary/month"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void fiadoVendidoHaTresDiasEPagoAgoraEntraNoResumoDeHojeENaoNoDiaDaVendaESaiDePendentes() throws Exception {
+        ZoneId spZone = ZoneId.of("America/Sao_Paulo");
+        LocalDate todaySp = LocalDate.now(spZone);
+        LocalDate threeDaysAgoSp = todaySp.minusDays(3);
+        YearMonth currentMonthSp = YearMonth.from(todaySp);
+
+        Instant soldThreeDaysAgo = ZonedDateTime.of(threeDaysAgoSp.atTime(14, 0), spZone).toInstant();
+
+        Product coxinha = productRepository.save(new Product(loggedUser.getId(), "Coxinha", 650, true));
+
+        Sale pendingSale = new Sale(
+                loggedUser.getId(),
+                soldThreeDaysAgo,
+                null,
+                1950L,
+                PaymentMethod.DINHEIRO,
+                PaymentStatus.PENDENTE,
+                "Cliente Fiado",
+                null
+        );
+        pendingSale.addItem(new SaleItem(coxinha.getId(), coxinha.getName(), coxinha.getPriceCents(), 3));
+        pendingSale = saleRepository.save(pendingSale);
+
+        // Antes da baixa: no dia da venda está em pendingCents/pendingCount, e em hoje está zerado
+        mockMvc.perform(get("/summary/day")
+                        .param("date", threeDaysAgoSp.toString())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalCents").value(0))
+                .andExpect(jsonPath("$.salesCount").value(0))
+                .andExpect(jsonPath("$.pendingCents").value(1950))
+                .andExpect(jsonPath("$.pendingCount").value(1));
+
+        mockMvc.perform(get("/summary/day")
+                        .param("date", todaySp.toString())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalCents").value(0))
+                .andExpect(jsonPath("$.salesCount").value(0))
+                .andExpect(jsonPath("$.pendingCents").value(0))
+                .andExpect(jsonPath("$.pendingCount").value(0));
+
+        // Dá baixa agora com PIX
+        mockMvc.perform(patch("/sales/" + pendingSale.getId() + "/pay")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"paymentMethod\":\"PIX\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paymentStatus").value("PAGO"))
+                .andExpect(jsonPath("$.paymentMethod").value("PIX"))
+                .andExpect(jsonPath("$.paidAt").isNotEmpty());
+
+        // Depois da baixa: entra no summary/day de HOJE e em byPaymentMethod PIX
+        mockMvc.perform(get("/summary/day")
+                        .param("date", todaySp.toString())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.date").value(todaySp.toString()))
+                .andExpect(jsonPath("$.totalCents").value(1950))
+                .andExpect(jsonPath("$.salesCount").value(1))
+                .andExpect(jsonPath("$.pendingCents").value(0))
+                .andExpect(jsonPath("$.pendingCount").value(0))
+                .andExpect(jsonPath("$.byPaymentMethod[1].paymentMethod").value("PIX"))
+                .andExpect(jsonPath("$.byPaymentMethod[1].totalCents").value(1950))
+                .andExpect(jsonPath("$.byPaymentMethod[1].count").value(1));
+
+        // NÃO entra no summary/day do dia da venda, e sai de pendingCents/pendingCount
+        mockMvc.perform(get("/summary/day")
+                        .param("date", threeDaysAgoSp.toString())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.date").value(threeDaysAgoSp.toString()))
+                .andExpect(jsonPath("$.totalCents").value(0))
+                .andExpect(jsonPath("$.salesCount").value(0))
+                .andExpect(jsonPath("$.pendingCents").value(0))
+                .andExpect(jsonPath("$.pendingCount").value(0));
+
+        // Entra no summary/month do mês de hoje (totalCents, byDay de hoje e topProducts)
+        int todayIndex = todaySp.getDayOfMonth() - 1;
+        mockMvc.perform(get("/summary/month")
+                        .param("month", currentMonthSp.toString())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.month").value(currentMonthSp.toString()))
+                .andExpect(jsonPath("$.totalCents").value(1950))
+                .andExpect(jsonPath("$.salesCount").value(1))
+                .andExpect(jsonPath("$.pendingCents").value(0))
+                .andExpect(jsonPath("$.pendingCount").value(0))
+                .andExpect(jsonPath("$.byDay[" + todayIndex + "].date").value(todaySp.toString()))
+                .andExpect(jsonPath("$.byDay[" + todayIndex + "].totalCents").value(1950))
+                .andExpect(jsonPath("$.byDay[" + todayIndex + "].count").value(1))
+                .andExpect(jsonPath("$.topProducts", hasSize(1)))
+                .andExpect(jsonPath("$.topProducts[0].name").value("Coxinha"))
+                .andExpect(jsonPath("$.topProducts[0].quantity").value(3))
+                .andExpect(jsonPath("$.topProducts[0].totalCents").value(1950));
+    }
+
+    @Test
+    void limiteDoDiaNoFusoDeSaoPauloValeParaPaidAtECRIadaComoPagoContaNoDiaDaVenda() throws Exception {
+        // Vendida no dia 2026-11-10, mas paga em 2026-11-12 às 23:30 SP (2026-11-13T02:30:00Z)
+        Instant soldEarlier = Instant.parse("2026-11-10T15:00:00Z");
+        Instant paidSp2330 = Instant.parse("2026-11-13T02:30:00Z");
+        // Vendida no dia 2026-11-10, mas paga em 2026-11-13 às 00:30 SP (2026-11-13T03:30:00Z)
+        Instant paidSpNextDay0030 = Instant.parse("2026-11-13T03:30:00Z");
+
+        saleRepository.save(new Sale(
+                loggedUser.getId(),
+                soldEarlier,
+                paidSp2330,
+                1400L,
+                PaymentMethod.PIX,
+                PaymentStatus.PAGO,
+                null,
+                null
+        ));
+
+        saleRepository.save(new Sale(
+                loggedUser.getId(),
+                soldEarlier,
+                paidSpNextDay0030,
+                2600L,
+                PaymentMethod.PIX,
+                PaymentStatus.PAGO,
+                null,
+                null
+        ));
+
+        // Venda criada já como PAGO via POST /sales no dia 2026-11-10 tem paidAt = soldAt e conta em 2026-11-10
+        mockMvc.perform(post("/sales")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "totalCents": 900,
+                                  "paymentMethod": "DINHEIRO",
+                                  "paymentStatus": "PAGO",
+                                  "soldAt": "2026-11-10T18:00:00Z"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.soldAt").value("2026-11-10T18:00:00Z"))
+                .andExpect(jsonPath("$.paidAt").value("2026-11-10T18:00:00Z"));
+
+        // Dia 2026-11-10 tem apenas a venda criada já como PAGO naquele dia (900)
+        mockMvc.perform(get("/summary/day")
+                        .param("date", "2026-11-10")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalCents").value(900))
+                .andExpect(jsonPath("$.salesCount").value(1));
+
+        // Dia 2026-11-12 tem apenas a venda paga às 23:30 SP (1400), e não a das 00:30 SP do dia 13
+        mockMvc.perform(get("/summary/day")
+                        .param("date", "2026-11-12")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalCents").value(1400))
+                .andExpect(jsonPath("$.salesCount").value(1));
+
+        // Dia 2026-11-13 tem a venda paga às 00:30 SP (2600)
+        mockMvc.perform(get("/summary/day")
+                        .param("date", "2026-11-13")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalCents").value(2600))
+                .andExpect(jsonPath("$.salesCount").value(1));
     }
 }

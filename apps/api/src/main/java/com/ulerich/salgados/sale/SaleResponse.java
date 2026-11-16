@@ -6,6 +6,7 @@ import java.util.List;
 public record SaleResponse(
         Long id,
         Instant soldAt,
+        Instant paidAt,
         long totalCents,
         PaymentMethod paymentMethod,
         PaymentStatus paymentStatus,
@@ -21,6 +22,7 @@ public record SaleResponse(
         return new SaleResponse(
                 sale.getId(),
                 sale.getSoldAt(),
+                sale.getPaidAt(),
                 sale.getTotalCents(),
                 sale.getPaymentMethod(),
                 sale.getPaymentStatus(),

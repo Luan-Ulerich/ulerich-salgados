@@ -31,6 +31,9 @@ public class Sale {
     @Column(name = "sold_at", nullable = false)
     private Instant soldAt;
 
+    @Column(name = "paid_at")
+    private Instant paidAt;
+
     @Column(name = "total_cents", nullable = false)
     private long totalCents;
 
@@ -67,11 +70,38 @@ public class Sale {
             String customerName,
             String notes
     ) {
+        this(
+                userId,
+                soldAt,
+                (paymentStatus == null || paymentStatus == PaymentStatus.PAGO)
+                        ? (soldAt != null ? soldAt : Instant.now())
+                        : null,
+                totalCents,
+                paymentMethod,
+                paymentStatus,
+                customerName,
+                notes
+        );
+    }
+
+    public Sale(
+            Long userId,
+            Instant soldAt,
+            Instant paidAt,
+            long totalCents,
+            PaymentMethod paymentMethod,
+            PaymentStatus paymentStatus,
+            String customerName,
+            String notes
+    ) {
         this.userId = userId;
         this.soldAt = soldAt != null ? soldAt : Instant.now();
+        this.paymentStatus = paymentStatus != null ? paymentStatus : PaymentStatus.PAGO;
+        this.paidAt = this.paymentStatus == PaymentStatus.PAGO
+                ? (paidAt != null ? paidAt : this.soldAt)
+                : null;
         this.totalCents = totalCents;
         this.paymentMethod = paymentMethod;
-        this.paymentStatus = paymentStatus != null ? paymentStatus : PaymentStatus.PAGO;
         this.customerName = customerName;
         this.notes = notes;
     }
@@ -84,11 +114,22 @@ public class Sale {
         if (this.paymentStatus == null) {
             this.paymentStatus = PaymentStatus.PAGO;
         }
+        if (this.paymentStatus == PaymentStatus.PAGO && this.paidAt == null) {
+            this.paidAt = this.soldAt;
+        } else if (this.paymentStatus == PaymentStatus.PENDENTE) {
+            this.paidAt = null;
+        }
     }
 
     public void addItem(SaleItem item) {
         item.setSale(this);
         this.items.add(item);
+    }
+
+    public void markAsPaid(PaymentMethod paymentMethod, Instant paidAt) {
+        this.paymentStatus = PaymentStatus.PAGO;
+        this.paymentMethod = paymentMethod;
+        this.paidAt = paidAt != null ? paidAt : Instant.now();
     }
 
     public Long getId() {
@@ -101,6 +142,10 @@ public class Sale {
 
     public Instant getSoldAt() {
         return soldAt;
+    }
+
+    public Instant getPaidAt() {
+        return paidAt;
     }
 
     public long getTotalCents() {
