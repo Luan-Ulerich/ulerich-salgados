@@ -5,11 +5,11 @@ import { LoginPage } from './pages/LoginPage.jsx'
 import {
   MaisPage,
   ResumoPage,
-  VendasPage,
 } from './pages/PlaceholderPages.jsx'
 import { NewSalePage } from './pages/NewSalePage.jsx'
 import { ProductFormPage } from './pages/ProductFormPage.jsx'
 import { ProductsPage } from './pages/ProductsPage.jsx'
+import { SalesPage } from './pages/SalesPage.jsx'
 
 export default function App() {
   return (
@@ -19,7 +19,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route element={<AppLayout />}>
             <Route path="/vender" element={<NewSalePage />} />
-            <Route path="/vendas" element={<VendasPage />} />
+            <Route path="/vendas" element={<SalesPage />} />
             <Route path="/resumo" element={<ResumoPage />} />
             <Route path="/mais" element={<MaisPage />} />
             <Route path="/produtos" element={<ProductsPage />} />
