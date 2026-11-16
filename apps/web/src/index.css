@@ -526,3 +526,360 @@ textarea {
   gap: 10px;
   margin-top: 4px;
 }
+
+/* Nova Venda (/vender) */
+.sale-page {
+  padding-bottom: 136px;
+  gap: 16px;
+}
+
+.sale-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sale-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sale-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--ink);
+}
+
+.sale-date {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.sale-today-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  padding: 6px 12px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.sale-today-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.sale-today-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--ink);
+}
+
+.sale-status-banner {
+  padding: 12px 16px;
+  background-color: var(--gold-soft);
+  border: 1.5px solid var(--gold);
+  border-radius: 14px;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 15px;
+  text-align: center;
+}
+
+.sale-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sale-inline-link {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.sale-products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sale-product-card {
+  height: 80px;
+  min-height: 80px;
+  padding: 10px 12px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.sale-product-card.selected {
+  border: 2px solid var(--primary);
+}
+
+.sale-product-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sale-product-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.2;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.sale-product-badge {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background-color: var(--primary);
+  color: var(--surface);
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sale-product-price {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sale-order-card {
+  padding: 16px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sale-card-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+.sale-order-empty {
+  color: var(--muted);
+  font-size: 15px;
+  padding: 6px 0;
+}
+
+.sale-order-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sale-order-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sale-order-line-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sale-order-line-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.sale-order-line-subtotal {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.sale-order-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sale-qty-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background-color: var(--cream);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 20px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sale-order-qty {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.sale-order-total-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.sale-order-total-label {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.sale-order-total-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.sale-avulso-input {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.sale-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sale-payment-btn {
+  min-height: 68px;
+  padding: 10px 8px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.sale-payment-btn.selected {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #FFFFFF;
+}
+
+.sale-toggles-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sale-avulso-toggle {
+  min-height: 48px;
+  padding: 0 16px;
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sale-avulso-toggle.active {
+  background-color: var(--gold-soft);
+  border-color: var(--primary);
+  color: var(--ink);
+}
+
+.sale-pending-switch {
+  background-color: var(--surface);
+}
+
+.sale-bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  padding: 10px 20px;
+  background-color: var(--cream);
+  border-top: 1px solid var(--border);
+  z-index: 15;
+}
+
+.sale-bottom-bar-inner {
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sale-save-btn {
+  height: 56px;
+  min-height: 56px;
+  background-color: var(--primary);
+}
+
+.sale-disabled-hint {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+}
+

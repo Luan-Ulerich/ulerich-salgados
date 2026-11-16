@@ -6,8 +6,8 @@ import {
   MaisPage,
   ResumoPage,
   VendasPage,
-  VenderPage,
 } from './pages/PlaceholderPages.jsx'
+import { NewSalePage } from './pages/NewSalePage.jsx'
 import { ProductFormPage } from './pages/ProductFormPage.jsx'
 import { ProductsPage } from './pages/ProductsPage.jsx'
 
@@ -18,7 +18,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<AppLayout />}>
-            <Route path="/vender" element={<VenderPage />} />
+            <Route path="/vender" element={<NewSalePage />} />
             <Route path="/vendas" element={<VendasPage />} />
             <Route path="/resumo" element={<ResumoPage />} />
             <Route path="/mais" element={<MaisPage />} />
