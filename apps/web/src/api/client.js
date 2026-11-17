@@ -1,6 +1,14 @@
 import { clearSession, getValidToken } from '../auth/session.js'
 
-const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080').replace(/\/$/, '')
+const BASE_URL = String(import.meta.env.VITE_API_URL ?? 'http://localhost:8080').replace(
+  /\/+$/,
+  ''
+)
+
+function buildUrl(path) {
+  const cleanPath = String(path ?? '').startsWith('/') ? path : `/${path}`
+  return `${BASE_URL}${cleanPath}`
+}
 
 export async function request(path, options = {}) {
   const { method = 'GET', body, headers = {}, ...rest } = options
@@ -23,7 +31,7 @@ export async function request(path, options = {}) {
     requestHeaders['Content-Type'] = 'application/json'
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await fetch(buildUrl(path), {
     method,
     headers: requestHeaders,
     body: serializedBody,

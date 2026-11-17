@@ -23,7 +23,10 @@ npm-debug.log*
 # Env
 .env
 .env.*
+.env.prod
+.env.prod.local
 !.env.example
+!.env.prod.example
 
 # OS
 .DS_Store
