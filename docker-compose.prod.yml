@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Defina POSTGRES_DB no arquivo de ambiente}
+      POSTGRES_USER: ${POSTGRES_USER:?Defina POSTGRES_USER no arquivo de ambiente}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo de ambiente}
+    volumes:
+      - pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./apps/api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:?Defina POSTGRES_DB no arquivo de ambiente}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:?Defina POSTGRES_USER no arquivo de ambiente}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo de ambiente}
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no arquivo de ambiente}
+      APP_ADMIN_NAME: ${APP_ADMIN_NAME:?Defina APP_ADMIN_NAME no arquivo de ambiente}
+      APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL:?Defina APP_ADMIN_EMAIL no arquivo de ambiente}
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:?Defina APP_ADMIN_PASSWORD no arquivo de ambiente}
+    mem_limit: 768m
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./apps/web
+      args:
+        VITE_API_URL: /api
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?Defina SITE_ADDRESS no arquivo de ambiente}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+volumes:
+  pgdata_prod:
+  caddy_data:
+  caddy_config:
