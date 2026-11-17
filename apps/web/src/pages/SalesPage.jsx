@@ -286,7 +286,7 @@ export function SalesPage() {
             return
           }
           if (err instanceof TypeError) {
-            setError('Não foi possível conectar ao servidor. Tente de novo.')
+            setError('Sem conexão. Verifique a internet e tente de novo.')
           } else {
             setError(err?.data?.message || err?.message || 'Não foi possível carregar os fiados.')
           }
@@ -320,7 +320,7 @@ export function SalesPage() {
           return
         }
         if (err instanceof TypeError) {
-          setError('Não foi possível conectar ao servidor. Tente de novo.')
+          setError('Sem conexão. Verifique a internet e tente de novo.')
         } else {
           setError(err?.data?.message || err?.message || 'Não foi possível carregar as vendas.')
         }
@@ -413,7 +413,7 @@ export function SalesPage() {
         setConflictAlert(message)
         setReloadCount((count) => count + 1)
       } else if (err instanceof TypeError) {
-        setPaySheetError('Não foi possível conectar ao servidor. Tente de novo.')
+        setPaySheetError('Sem conexão. Verifique a internet e tente de novo.')
       } else {
         setPaySheetError(err?.data?.message || err?.message || 'Erro ao confirmar recebimento.')
       }
@@ -458,7 +458,7 @@ export function SalesPage() {
       }
     } catch (err) {
       if (err instanceof TypeError) {
-        setDeleteSheetError('Não foi possível conectar ao servidor. Tente de novo.')
+        setDeleteSheetError('Sem conexão. Verifique a internet e tente de novo.')
       } else {
         setDeleteSheetError(err?.data?.message || err?.message || 'Erro ao excluir venda.')
       }

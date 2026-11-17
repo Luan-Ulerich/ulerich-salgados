@@ -121,7 +121,7 @@ export function NewSalePage() {
       } catch (err) {
         if (!cancelled) {
           if (err instanceof TypeError) {
-            setProductsError('Não foi possível conectar ao servidor. Tente de novo.')
+            setProductsError('Sem conexão. Verifique a internet e tente de novo.')
           } else {
             setProductsError(
               err?.data?.message || err?.message || 'Não foi possível carregar os produtos.'
@@ -323,7 +323,7 @@ export function NewSalePage() {
       await refreshTodaySummary()
     } catch (err) {
       if (err instanceof TypeError) {
-        setSubmitError('Não foi possível conectar ao servidor. Tente de novo.')
+        setSubmitError('Sem conexão. Verifique a internet e tente de novo.')
       } else {
         setSubmitError(err?.data?.message || err?.message || 'Erro ao salvar venda.')
       }

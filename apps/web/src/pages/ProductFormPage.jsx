@@ -56,7 +56,7 @@ export function ProductFormPage() {
         if (err?.status === 404) {
           setNotFound(true)
         } else if (err instanceof TypeError) {
-          setError('Não foi possível conectar ao servidor. Tente de novo.')
+          setError('Sem conexão. Verifique a internet e tente de novo.')
         } else {
           setError(err?.data?.message || err?.message || 'Erro ao carregar produto.')
         }

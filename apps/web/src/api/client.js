@@ -1,5 +1,7 @@
 import { clearSession, getValidToken } from '../auth/session.js'
 
+const OFFLINE_MESSAGE = 'Sem conexão. Verifique a internet e tente de novo.'
+
 const BASE_URL = String(import.meta.env.VITE_API_URL ?? 'http://localhost:8080').replace(
   /\/+$/,
   ''
@@ -31,12 +33,20 @@ export async function request(path, options = {}) {
     requestHeaders['Content-Type'] = 'application/json'
   }
 
-  const response = await fetch(buildUrl(path), {
-    method,
-    headers: requestHeaders,
-    body: serializedBody,
-    ...rest,
-  })
+  let response
+  try {
+    response = await fetch(buildUrl(path), {
+      method,
+      headers: requestHeaders,
+      body: serializedBody,
+      ...rest,
+    })
+  } catch (err) {
+    if (err instanceof TypeError) {
+      throw new TypeError(OFFLINE_MESSAGE)
+    }
+    throw err
+  }
 
   const rawText = await response.text()
   let data = null

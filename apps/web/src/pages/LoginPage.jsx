@@ -34,7 +34,7 @@ export function LoginPage() {
       navigate('/vender', { replace: true })
     } catch (err) {
       if (err instanceof TypeError) {
-        setError('Não foi possível conectar ao servidor. Tente de novo.')
+        setError('Sem conexão. Verifique a internet e tente de novo.')
       } else {
         setError('E-mail ou senha incorretos.')
       }
