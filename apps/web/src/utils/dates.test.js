@@ -3,8 +3,10 @@ import {
   formatDayMonthSP,
   formatLongDayPt,
   formatTimeSP,
+  monthLabelPt,
   monthRangeOf,
   shiftDay,
+  shiftMonth,
   todayInSP,
 } from './dates.js'
 
@@ -46,5 +48,17 @@ describe('dates utils (America/Sao_Paulo)', () => {
     expect(formatDayMonthSP('2026-11-19T18:00:00Z')).toBe('19/11')
     expect(formatDayMonthSP('2026-11-20T02:30:00Z')).toBe('19/11')
     expect(formatLongDayPt('2026-11-16')).toBe('segunda-feira, 16 de novembro')
+  })
+
+  it('shiftMonth atravessa de janeiro para trás e de dezembro para frente', () => {
+    expect(shiftMonth('2026-01', -1)).toBe('2025-12')
+    expect(shiftMonth('2026-12', 1)).toBe('2027-01')
+    expect(shiftMonth('2026-11', -1)).toBe('2026-10')
+    expect(shiftMonth('2026-11', 1)).toBe('2026-12')
+  })
+
+  it('monthLabelPt formata yyyy-MM em português sem depender do fuso', () => {
+    expect(monthLabelPt('2026-11')).toBe('novembro de 2026')
+    expect(monthLabelPt('2026-01')).toBe('janeiro de 2026')
   })
 })

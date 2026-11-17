@@ -2,14 +2,12 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext.jsx'
 import { AppLayout } from './components/AppLayout.jsx'
 import { LoginPage } from './pages/LoginPage.jsx'
-import {
-  MaisPage,
-  ResumoPage,
-} from './pages/PlaceholderPages.jsx'
+import { MaisPage } from './pages/PlaceholderPages.jsx'
 import { NewSalePage } from './pages/NewSalePage.jsx'
 import { ProductFormPage } from './pages/ProductFormPage.jsx'
 import { ProductsPage } from './pages/ProductsPage.jsx'
 import { SalesPage } from './pages/SalesPage.jsx'
+import { SummaryPage } from './pages/SummaryPage.jsx'
 
 export default function App() {
   return (
@@ -20,7 +18,7 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route path="/vender" element={<NewSalePage />} />
             <Route path="/vendas" element={<SalesPage />} />
-            <Route path="/resumo" element={<ResumoPage />} />
+            <Route path="/resumo" element={<SummaryPage />} />
             <Route path="/mais" element={<MaisPage />} />
             <Route path="/produtos" element={<ProductsPage />} />
             <Route path="/produtos/novo" element={<ProductFormPage />} />

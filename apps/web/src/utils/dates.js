@@ -27,12 +27,26 @@ const spLongDayPtFormatter = new Intl.DateTimeFormat('pt-BR', {
   month: 'long',
 })
 
+const spMonthPtFormatter = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: 'UTC',
+  month: 'long',
+  year: 'numeric',
+})
+
 function parseYmd(ymd) {
   const [yearStr, monthStr, dayStr] = String(ymd ?? '').split('-')
   return {
     year: Number.parseInt(yearStr, 10),
     month: Number.parseInt(monthStr, 10),
     day: Number.parseInt(dayStr, 10),
+  }
+}
+
+function parseYm(ym) {
+  const [yearStr, monthStr] = String(ym ?? '').split('-')
+  return {
+    year: Number.parseInt(yearStr, 10),
+    month: Number.parseInt(monthStr, 10),
   }
 }
 
@@ -92,4 +106,24 @@ export function formatLongDayPt(ymd) {
   const { year, month, day } = parseYmd(ymd)
   const utcDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0))
   return spLongDayPtFormatter.format(utcDate)
+}
+
+export function shiftMonth(ym, delta) {
+  const { year, month } = parseYm(ym)
+  const utcDate = new Date(Date.UTC(year, month - 1 + Number(delta || 0), 1))
+  const nextYear = String(utcDate.getUTCFullYear()).padStart(4, '0')
+  const nextMonth = String(utcDate.getUTCMonth() + 1).padStart(2, '0')
+  return `${nextYear}-${nextMonth}`
+}
+
+export function monthLabelPt(ym) {
+  if (!ym) {
+    return ''
+  }
+  const { year, month } = parseYm(ym)
+  if (!Number.isInteger(year) || !Number.isInteger(month)) {
+    return ''
+  }
+  const utcDate = new Date(Date.UTC(year, month - 1, 1, 12, 0, 0))
+  return spMonthPtFormatter.format(utcDate)
 }
