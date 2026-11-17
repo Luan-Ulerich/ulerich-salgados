@@ -21,7 +21,7 @@ export function ProductsPage() {
       } catch (err) {
         if (!cancelled) {
           if (err instanceof TypeError) {
-            setError('Não foi possível conectar ao servidor. Tente de novo.')
+            setError('Sem conexão. Verifique a internet e tente de novo.')
           } else {
             setError(err?.data?.message || err?.message || 'Não foi possível carregar os produtos.')
           }

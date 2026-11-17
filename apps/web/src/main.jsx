@@ -8,6 +8,9 @@ import '@fontsource/figtree/600.css'
 import '@fontsource/figtree/700.css'
 import './index.css'
 import App from './App.jsx'
+import { registerSW } from './registerSW.js'
+
+registerSW()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
