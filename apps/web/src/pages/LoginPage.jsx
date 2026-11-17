@@ -46,7 +46,11 @@ export function LoginPage() {
   return (
     <main className="login-page">
       <div className="login-logo-wrap">
-        <img src={logo} alt="Salgados Ulerich" className="login-logo" />
+        <img
+          src={logo}
+          alt="Salgados Ulerich: qualidade e tradição"
+          className="login-logo"
+        />
       </div>
 
       <header className="login-header">
